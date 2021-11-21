@@ -10,15 +10,16 @@ szBounds:		.asciz		"Index entered is out of bounds for string\n"
 String_charAt:
 	mov		X5, X0			// preserve the address
 	mov		X4, X1			// preserver index
-	str	    lr, [sp, #-16]!	// push link register to the stack
+	str	        lr, [sp, #-16]!	// push link register to the stack
 	bl		strLength		// get the length of the variable
-	ldr	    lr, [sp], #16	// load link back again
+	ldr	        lr, [sp], #16	// load link back again
 	mov		X0, X5			// restore X0
 	mov		X1, X4			// restore X1
-	cmp		X2, X1			// compare the string length to the index entered
+	cmp		X1, X2			// compare the string length to the index entered
 	bgt		exit_charAt		// if it is greater exit the function
 	add		X0, X1, X0		// add the index position
-	ldrb	W0, [X0]		// load the value at that address 
+	ldrb		W0, [X0]		// load the value at that address 
+	mov		X1, X0			// move thatbyte into X1 to returnq
 
 	ret		LR
 	
