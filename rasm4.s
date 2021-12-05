@@ -3,6 +3,15 @@
 // Purpose:
 // TBD 
 
+// - File Modes - \\
+.equ	READONLY,	00
+.equ	WRITEONLY,	01
+.equ	READWRITE,	02
+.equ	CREATEWO,	0101
+
+// - File Perms - \\
+.equ	RW_RW__,	660
+
 	.data
 
 // - Menu Strings - \\
@@ -33,9 +42,15 @@ szSubOpt:	.asciz	"Please select a sub-option: "
 szNL:		.asciz	"\n"
 szGetOpt:	.asciz	"Please select an option: "
 szValidIn:	.asciz	"Please select a valid option: "
+szEnterStr:	.asciz	"Enter a string to search for: "
 
+
+// - File Locations - \\
+szOutFile:	.asciz "/home/pi/cs3b/RASM/RASM4/output.txt"
+szInFile:	.asciz	"/home/pi/cs3b/RASM/RASM4/input.txt"
 
 kbBuf:		.skip	512		// keyboard buffer
+szBuf:		.skip	90000
 
 	.global	_start
 	.text
@@ -89,7 +104,28 @@ getIn1:
 	bl	getOption		// jump to check what option was selected
 
 Opt1:	// CODE FOR OPTION 1 GOES HERE
+	// Option 1 reads and prints 90 bytes from output.txt
 
+	mov	X8,	#56
+	ldr	X1,	=szOutFile
+	mov	X2,	#READONLY
+	svc	0
+	str	X0,	[SP, #-16]!
+	
+	mov	X8,	#63
+	ldr	X1,	=szBuf
+	mov	X2,	#45000
+	add	X2,	X2,	X2
+	svc	0
+
+	ldr	X0,	=szBuf
+	bl	putString
+		
+	ldr	X0,	[SP],	#16
+	mov	X8,	#57
+	svc	0
+
+	b	_start
 
 Opt2:	// CODE FOR OPTION 2 GOES HERE
 
@@ -116,6 +152,7 @@ Opt2a: 	// CODE FOR OPTION 2.a GOES HERE
 
 Opt2b:	// CODE FOR OPTION 2.b GOES HERE
 
+	
 
 Opt3:	// CODE FOR OPTION 3 GOES HERE
 
@@ -124,7 +161,45 @@ Opt4:	// CODE FOR OPTION 4 GOES HERE
 
 
 Opt5: 	// CODE FOR OPTION 5 GOES HERE
+	// opening output.txt
+	mov	X8,	#56
+	ldr	X1,	=szOutFile
+	mov	X2,	#READONLY
+	svc	0
+	mov	X20,	X0
 
+	mov	X19,	#0		// counter
+
+	ldr	X0,	=szEnterStr	// print msg
+	bl	putString		
+
+	ldr	X1,	=kbBuf		// entering the string to search for
+	mov	X2,	#50		// max size of string
+	bl	getString
+
+	// load into X0 the address of the pointer to the current line
+checkOpt5:
+	bl	strcasestr		// strcasestr will return a pointer to needle(X1) within the haystack(X0)
+
+	cmp	X0,	#0		// comparing output to null
+	beq	itterateLL		// if null itterate linked list and keep searching
+	
+	mov	X0,	X19		// returing the counter
+	b	stringFound	
+
+itterateLL:
+	add	X19,	X19,	#1	// add one to the counter
+	// itterate linked list
+	b	checkOpt5
+
+stringFound:
+	bl	printUInt
+
+	mov	X0,	X20		// closing file
+	mov	X8,	#57
+	svc	0
+
+	b	_start
 
 Opt6:	// CODE FOR OPTION 6 GOES HERE
 
